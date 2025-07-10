@@ -10,17 +10,16 @@ Bring your vintage computers online with archived websites from the past! This p
 - Automatically intercepts and time-travels HTTP requests
 - Rotary encoder lets you change the browsing date
 - DHCP + DNS redirection using `dnsmasq`
-- Real-time clock keeps time across reboots
 - OLED display (optional) shows the active date
+-also works as a ethernet to Wi-Fi bridge
 
 ---
 
 ## Hardware Requirements
 
-- Raspberry Pi 4 or later (2 NICs recommended: built-in + USB Ethernet)
+- Raspberry P
 - Rotary encoder (e.g., KY-040)
 - OLED display (SSD1306 or SH1106, optional)
-- Real-Time Clock module (e.g., DS3231)
 - Retro computer with Ethernet
 
 ---
@@ -69,12 +68,14 @@ Add to `/etc/sysctl.conf`:
 net.ipv4.ip_forward=1
 ```
 
-### 4. Set up iptables (replace `eth1` and `eth0` with your interfaces)
+### 4. Set up iptables (replace `wlan0` and `eth0` with your interfaces)
 
-```bash
-sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-sudo iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 80 -j REDIRECT --to-port 80
-```
+
+# Enable NAT for outbound traffic going out via wlan0
+sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+
+# Redirect incoming HTTP traffic from eth0 to local port 80 (for transparent proxy)
+sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 80
 
 To make persistent:
 
@@ -88,7 +89,7 @@ sudo netfilter-persistent save
 Edit `/etc/dnsmasq.conf`:
 
 ```conf
-interface=eth1
+interface=eth0
 dhcp-range=192.168.2.2,192.168.2.254,12h
 address=/#/192.168.2.1
 ```
@@ -109,7 +110,7 @@ Use a Python script with `RPi.GPIO` or `gpiozero` to read encoder position and u
 
 ##  Testing
 
-1. Connect retro computer via Ethernet to Pi's `eth1`
+1. Connect retro computer via Ethernet to Pi's `eth0`
 2. Power on Pi and retro machine
 3. Open a browser and try `http://google.com` or other HTTP sites
 4. The Pi will serve archived versions closest to the selected date
