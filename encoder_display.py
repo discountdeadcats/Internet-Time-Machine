@@ -10,8 +10,8 @@ import subprocess
 
 
 # Rotary encoder GPIO pins
-CLK = 27
-DT = 22
+CLK = 27 # a
+DT = 22 # b
 SW = 17
 
 # Date range limits
